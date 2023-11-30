@@ -70,17 +70,19 @@ def secondary_structure(sequence):
                 pointers[i][j] = dir
     return compute_dot_paren(M,pointers)
 
-# file_name = 'microgreen_id_rna'
-file_name = "test_seq"
+file_name = 'microgreen_id_rna'
+# file_name = "test_seq"
 structure_file = open(f'output/{file_name}_structure.fasta', 'w')
 
-with open(f'test/{file_name}.fasta', 'r') as f:
+with open(f'data/{file_name}.fasta', 'r') as f:
     line = f.readline()
-    while line:
+    line_count = 0
+    while line and line_count < 2:
         if (line[0] == '>' or len(line) == 0):
             structure_file.write(line)
         else:
             structure_file.write(line)
             structure_file.write(secondary_structure(line[:-1])+'\n')
         line = f.readline()
+        line_count += 1
 structure_file.close()
