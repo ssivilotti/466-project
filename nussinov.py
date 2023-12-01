@@ -38,12 +38,12 @@ def compute_dot_paren(M, pointers):
     return result
 
 # return the dot-parenthese structure corresponding to the sequence
-def secondary_structure(sequence):
+def secondary_structure(sequence, min_hairpin_length=4):
     M = [[0 for _ in range(len(sequence))] for _ in range(len(sequence))]
     pointers = [[(0,0) for _ in range(len(sequence))] for _ in range(len(sequence))]
     for j in range(len(sequence)):
         for i in range(len(sequence))[::-1]:
-            if i >= j:
+            if i + min_hairpin_length >= j:
                 M[i][j] = 0
             else:
                 dir = (i+1, j-1)
@@ -59,7 +59,7 @@ def secondary_structure(sequence):
                     dir = (i, j-1)
                 max = M[i][j]
                 max_k = -1
-                for k in range(i+1, j):
+                for k in range(i+1 + min_hairpin_length, j):
                     sum = M[i][k] + M[k+1][j]
                     if sum > max:
                         max = sum
@@ -70,14 +70,16 @@ def secondary_structure(sequence):
                 pointers[i][j] = dir
     return compute_dot_paren(M,pointers)
 
-file_name = 'microgreen_id_rna'
-# file_name = "test_seq"
+# file_dir = 'data'
+# file_name = 'microgreen_id_rna'
+file_dir = 'test'
+file_name = "test_seq"
 structure_file = open(f'output/{file_name}_structure.fasta', 'w')
 
-with open(f'data/{file_name}.fasta', 'r') as f:
+with open(f'{file_dir}/{file_name}.fasta', 'r') as f:
     line = f.readline()
     line_count = 0
-    while line and line_count < 2:
+    while line and line_count < 4:
         if (line[0] == '>' or len(line) == 0):
             structure_file.write(line)
         else:

@@ -1,6 +1,6 @@
 >TEST0
 AUGC
-....
+()()
 >TEST1
 AUGCGCGGGAUCGUCGAGAU
-((.((((....)).))..))
+((.()()..()()(()).))
