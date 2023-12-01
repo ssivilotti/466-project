@@ -4,3 +4,6 @@ AUGC
 >TEST1
 AUGCGCGGGAUCGUCGAGAU
 ((.((((....)).))..))
+>TEST2
+AAAAAAAAAAAAUUUUUUUUUUUUUUUGGGGGGGGGGGGGGGGGCCCCCCCCCCCCC
+.(((((((((((....)))))))))))(((((((((((((....)))))))))))))

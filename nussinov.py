@@ -1,9 +1,11 @@
 import numpy as np
 
-pairings = {'A': 'U', 'U': 'A', 'G':'C', 'C':'G'}
+import sys
+
+pairings = {'A': 'U', 'U': 'A', 'G':'C', 'C':'G', 'N': '0'}
 
 # compute the back trace of the optimal structure and return the representaiton of that structure
-def compute_dot_paren(M, pointers):
+def compute_dot_paren(M, pointers, min_hairpin):
     result = "."*len(M)
     # find end solution to start backtrace
     solution_idx = np.array(M)[:,-1].argmax()
@@ -12,9 +14,9 @@ def compute_dot_paren(M, pointers):
     i = solution_idx
     j = len(result) - 1
     k = []
-    while i < j or len(k) > 0:
+    while i + min_hairpin < j or len(k) > 0:
         # print(f"{i}, {j}")
-        if i >= j:
+        if i + min_hairpin >= j:
             # go to next bifurcation
             k.sort()
             last_k = k.pop()
@@ -59,7 +61,7 @@ def secondary_structure(sequence, min_hairpin_length=4):
                     dir = (i, j-1)
                 max = M[i][j]
                 max_k = -1
-                for k in range(i+1 + min_hairpin_length, j):
+                for k in range(i+1 + min_hairpin_length, j-min_hairpin_length):
                     sum = M[i][k] + M[k+1][j]
                     if sum > max:
                         max = sum
@@ -68,23 +70,35 @@ def secondary_structure(sequence, min_hairpin_length=4):
                     M[i][j] = max
                     dir = (max_k, -1)
                 pointers[i][j] = dir
-    return compute_dot_paren(M,pointers)
+    return compute_dot_paren(M, pointers, min_hairpin_length)
 
-# file_dir = 'data'
-# file_name = 'microgreen_id_rna'
-file_dir = 'test'
-file_name = "test_seq"
-structure_file = open(f'output/{file_name}_structure.fasta', 'w')
-
-with open(f'{file_dir}/{file_name}.fasta', 'r') as f:
-    line = f.readline()
-    line_count = 0
-    while line and line_count < 4:
-        if (line[0] == '>' or len(line) == 0):
-            structure_file.write(line)
+def compute_for_file(file_name, file_dir='.', sequences_to_read=None):
+    # file_dir = 'data'
+    # file_name = 'microgreen_id_rna'
+    # file_dir = 'test'
+    # file_name = "test_seq"
+    structure_file_name = f'{file_name}_structure'
+    if sequences_to_read != None:
+        if len(sequences_to_read) == 1:
+            structure_file_name += f'_{sequences_to_read[0]}'
         else:
-            structure_file.write(line)
-            structure_file.write(secondary_structure(line[:-1])+'\n')
+            structure_file_name += f'_{len(sequences_to_read)}_{sequences_to_read[0]}'
+    structure_file = open(f'output/{structure_file_name}.fasta', 'w')
+
+    with open(f'{file_dir}/{file_name}.fasta', 'r') as f:
         line = f.readline()
-        line_count += 1
-structure_file.close()
+        line_count = 0
+        read_seq = False
+        while line:
+            if ((line[0] == '>' or len(line) == 0) and (sequences_to_read==None or line[1:-1] in sequences_to_read)):
+                structure_file.write(line)
+                read_seq = True
+            elif read_seq:
+                structure_file.write(line)
+                structure_file.write(secondary_structure(line[:-1])+'\n')
+                read_seq = False
+            line = f.readline()
+            line_count += 1
+    structure_file.close()
+
+compute_for_file('microgreen_id_rna', 'data', ['AF482502'])
