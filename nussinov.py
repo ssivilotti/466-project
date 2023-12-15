@@ -2,7 +2,7 @@ import numpy as np
 
 import sys
 
-pairings = {'A': 'U', 'U': 'A', 'G':'C', 'C':'G', 'N': '0'}
+pairings = {'A': 'U', 'U': 'A', 'G':'C', 'C':'G', 'N': '0', 'Y': '0'}
 
 # compute the back trace of the optimal structure and return the representaiton of that structure
 def compute_dot_paren(M, pointers, min_hairpin):
@@ -40,7 +40,7 @@ def compute_dot_paren(M, pointers, min_hairpin):
     return result
 
 # return the dot-parenthese structure corresponding to the sequence
-def secondary_structure(sequence, min_hairpin_length=4):
+def nussinov_secondary_structure(sequence, min_hairpin_length=3):
     M = [[0 for _ in range(len(sequence))] for _ in range(len(sequence))]
     pointers = [[(0,0) for _ in range(len(sequence))] for _ in range(len(sequence))]
     for j in range(len(sequence)):
@@ -49,7 +49,12 @@ def secondary_structure(sequence, min_hairpin_length=4):
                 M[i][j] = 0
             else:
                 dir = (i+1, j-1)
-                if sequence[i] == pairings[sequence[j]]:
+                match = False
+                try:
+                    match = (sequence[i] == pairings[sequence[j]])
+                except:
+                    match = False
+                if match:
                     M[i][j] = M[i+1][j-1] + 1
                 else:
                     M[i][j] = M[i+1][j-1]
@@ -72,7 +77,8 @@ def secondary_structure(sequence, min_hairpin_length=4):
                 pointers[i][j] = dir
     return compute_dot_paren(M, pointers, min_hairpin_length)
 
-def compute_for_file(file_name, file_dir='.', sequences_to_read=None):
+
+def compute_for_file(file_name, file_dir='.', sequences_to_read=None, lines_to_skip=0):
     # file_dir = 'data'
     # file_name = 'microgreen_id_rna'
     # file_dir = 'test'
@@ -90,15 +96,15 @@ def compute_for_file(file_name, file_dir='.', sequences_to_read=None):
         line_count = 0
         read_seq = False
         while line:
-            if ((line[0] == '>' or len(line) == 0) and (sequences_to_read==None or line[1:-1] in sequences_to_read)):
+            if ((line[0] == '>' or len(line) == 0) and (sequences_to_read==None or line[1:-1] in sequences_to_read) and line_count>=lines_to_skip):
                 structure_file.write(line)
                 read_seq = True
             elif read_seq:
                 structure_file.write(line)
-                structure_file.write(secondary_structure(line[:-1])+'\n')
+                structure_file.write(nussinov_secondary_structure(line[:-1])+'\n')
                 read_seq = False
             line = f.readline()
             line_count += 1
     structure_file.close()
 
-compute_for_file('microgreen_id_rna', 'data', ['AF482502'])
+compute_for_file('microgreen_id_rna', 'data', lines_to_skip=56)
