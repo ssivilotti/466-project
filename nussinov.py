@@ -90,6 +90,7 @@ def compute_for_file(file_name, file_dir='.', sequences_to_read=None, lines_to_s
         else:
             structure_file_name += f'_{len(sequences_to_read)}_{sequences_to_read[0]}'
     structure_file = open(f'output/{structure_file_name}.fasta', 'w')
+    min_len = 3
 
     with open(f'{file_dir}/{file_name}.fasta', 'r') as f:
         line = f.readline()
@@ -101,7 +102,7 @@ def compute_for_file(file_name, file_dir='.', sequences_to_read=None, lines_to_s
                 read_seq = True
             elif read_seq:
                 structure_file.write(line)
-                structure_file.write(nussinov_secondary_structure(line[:-1])+'\n')
+                structure_file.write(nussinov_secondary_structure(line[:-1], min_len)+'\n')
                 read_seq = False
             line = f.readline()
             line_count += 1
